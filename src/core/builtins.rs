@@ -22,7 +22,12 @@ impl Builtin for Function {
         let stdout = std::io::stdout();
         let mut stdout = BufWriter::new(stdout.lock());
         
-        let writeln = writeln!(stdout, "{}", self.value);
+        let mut chars = self.value.trim().chars();
+        chars.next();
+        chars.next_back();
+        let fmt_out = chars.as_str();
+
+        let writeln = writeln!(stdout, "{}", fmt_out);
     
         match writeln {
             Ok(()) => (),

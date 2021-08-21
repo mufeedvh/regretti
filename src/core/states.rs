@@ -1,16 +1,22 @@
+use super::tokens::Token;
+
 use parking_lot::Mutex;
 use std::collections::HashMap;
-
 use ahash::RandomState;
 use once_cell::sync::Lazy;
 
-use super::tokens::Token;
+#[derive(Copy, Clone)]
+pub enum Operation {
+    Allocation,
+    Threads,
+    StateChange,
+}
 
 #[derive(Copy, Clone)]
 pub struct ProgramState {
-    pub(crate) function: Token,
-    pub(crate) operation: Option<Token>,
-    pub(crate) line: usize,
+    pub(super) function: Token,
+    pub(super) operation: Operation,
+    pub(super) line: usize,
 }
 
 pub const STATE_KEY: &str = "state";
@@ -26,7 +32,7 @@ impl ProgramState {
         *PROGRAM_STATE.lock().get(STATE_KEY).unwrap()
     }
 
-    pub fn set_state(function: Token, operation: Option<Token>, line: usize) {
+    pub fn set_state(function: Token, operation: Operation, line: usize) {
         let state = Self {
             function,
             operation,

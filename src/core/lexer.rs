@@ -5,7 +5,7 @@ use logos::Logos;
 use super::{
     tokens::*,
     messages::*,
-    states::ProgramState,
+    states::{ProgramState, Operation},
     parser::Parser,
 };
 
@@ -14,6 +14,7 @@ pub struct Lexer;
 pub trait Analyser {
     fn analyse(&self, slice: &str) -> Option<Token>;
     fn tokenize(&self, slice: &str) -> Vec<Token>;
+    fn slice(&self, slice: &str) -> Vec<String>;
     fn lexerize(&self, source: &str);
 }
 
@@ -22,7 +23,7 @@ impl Analyser for Lexer {
     // stepped analysis
     fn analyse(&self, slice: &str) -> Option<Token> {
         // statement grammar
-        match token_grammer(slice) {
+        match token_grammar(slice) {
             Token::Statement => {
                 let slice_parse = Parser {
                     token: Token::Statement,
@@ -36,12 +37,10 @@ impl Analyser for Lexer {
         }
     }
 
-    // tokenizer
-    // `tokenize()` essentially does the same thing `lexerize()` does
-    // -> individual instructions are analysed on a smaller subset of tokens for fewer amount of lookups.
     fn tokenize(&self, slice: &str) -> Vec<Token> {
         let mut lex = Token::lexer(slice);
-        let mut tokens: Vec<Token> = Vec::with_capacity(2);
+        // maximum statement scope stays 4
+        let mut tokens: Vec<Token> = Vec::with_capacity(4);
 
         loop {
             let (token, _span, slice) = (lex.next(), lex.span(), lex.slice());
@@ -50,7 +49,9 @@ impl Analyser for Lexer {
                 match token {
                     Some(Token::PassLex) => {
                         let token = self.analyse(slice);
-                        tokens.push(token.unwrap())
+                        if token.is_some() {
+                            tokens.push(token.unwrap())   
+                        }
                     },
                     _ => tokens.push(token.unwrap())
                 }
@@ -62,6 +63,33 @@ impl Analyser for Lexer {
         tokens
     }
 
+    // umm... why?? (debug)
+    fn slice(&self, slice: &str) -> Vec<String> {
+        let mut lex = Token::lexer(slice);
+        // maximum statement scope stays 4
+        let mut slices: Vec<String> = Vec::with_capacity(4);
+
+        loop {
+            let (token, slice) = (lex.next(), lex.slice());
+
+            if token.is_some() {
+                match token {
+                    Some(Token::PassLex) => {
+                        let token = self.analyse(slice);
+                        if token.is_some() {
+                            slices.push(slice.to_string())
+                        }
+                    },
+                    _ => slices.push(slice.to_string())
+                }
+            } else {
+                break
+            }
+        }
+
+        slices
+    }    
+
     // main lexer
     fn lexerize(&self, source: &str) {
         let mut lex = Token::lexer(source);
@@ -70,8 +98,7 @@ impl Analyser for Lexer {
         loop {
             let (token, _span, slice) = (lex.next(), lex.span(), lex.slice());
     
-            // println!("{:?}", slice);
-            // println!("{:?}", token);
+            // println!("{:?} :: {:?}", slice, token);
     
             match token {
                 // line coint
@@ -80,7 +107,7 @@ impl Analyser for Lexer {
                 Some(Token::MainFunction) => {
                     ProgramState::set_state(
                         Token::MainFunction,
-                        None,
+                        Operation::StateChange,
                         line
                     )
                 },
@@ -88,7 +115,7 @@ impl Analyser for Lexer {
                 Some(Token::FunctionEnd) => {
                     ProgramState::set_state(
                         Token::FunctionEnd,
-                        None,
+                        Operation::StateChange,
                         line
                     )
                 },            
@@ -96,7 +123,7 @@ impl Analyser for Lexer {
                 Some(Token::CommandStart) => {
                     ProgramState::set_state(
                         Token::CommandStart,
-                        None,
+                        Operation::StateChange,
                         line
                     )                
                 },
@@ -104,11 +131,48 @@ impl Analyser for Lexer {
                 Some(Token::CommandEnd) => {
                     ProgramState::set_state(
                         Token::CommandEnd,
-                        None,
+                        Operation::StateChange,
                         line
-                    )                
+                    )
                 },
-                // manual parsing
+                Some(Token::Variable) => {
+                    // set state to allocation
+                    ProgramState::set_state(
+                        Token::Variable,
+                        Operation::Allocation,
+                        line
+                    );
+
+                    // take full slice
+                    let mut scope_lex = lex.clone();
+                    let mut scope_slice = String::new();
+
+                    // add variable key
+                    scope_slice.push_str(slice);
+                    scope_slice.push(' ');
+
+                    loop {
+                        // get arbitrary syntax
+                        let (token, slice) = (scope_lex.next(), scope_lex.slice());
+
+                        // read until end of statement
+                        if token != Some(Token::Newline) {
+                            scope_slice.push_str(slice);
+                            scope_slice.push(' ')
+                        } else {
+                            break
+                        }
+                    }
+
+                    // pass the complete slice to parser
+                    let slice_parse = Parser {
+                        token: Token::Variable,
+                        slice: scope_slice,
+                    };
+
+                    Parser::parse(&slice_parse);
+                },
+                // stepped parsing
                 Some(Token::PassLex) => { self.analyse(slice); },
                 // finish point
                 None => process::exit(0),

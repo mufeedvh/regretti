@@ -90,6 +90,12 @@ pub enum Token {
     #[token("/")]
     Divide,
 
+    #[token("=")]
+    Assign,
+
+    #[token("==")]
+    Equals,   
+
     #[token("!=")]
     NotEquals,
 
@@ -129,7 +135,7 @@ pub static STRING: Lazy<Regex> = Lazy::new(|| Regex::new("\"(.*)\"").unwrap());
 // pub static KEYWORD: Lazy<Regex> = Lazy::new(|| Regex::new("[a-zA-Z_]+").unwrap());
 
 /// Returns the token type from grammar matches
-pub fn token_grammer(slice: &str) -> Token {
+pub fn token_grammar(slice: &str) -> Token {
     if STATEMENT.is_match(slice) {
         Token::Statement
     } else if STRING.is_match(slice) {
