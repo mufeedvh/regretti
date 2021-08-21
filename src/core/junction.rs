@@ -16,7 +16,7 @@ pub fn execute(script_path: &String) {
     let file = match &file {
         Ok(file) => file,
         Err(error) => {
-            messages::push_error(format!("Failed to open script `{}` due to ↓ \n{:?}\n", script_path, error));
+            messages::push_error(format!("Failed to open script `{}` due to ↓ \n\n\t{:?}\n", script_path, error));
             process::exit(1)
         }
     };
@@ -27,8 +27,16 @@ pub fn execute(script_path: &String) {
             .expect("Failed to load script")
     };
 
+    let source = match str::from_utf8(script_source.get(..).unwrap()) {
+        Ok(source) => source,
+        Err(error) => {
+            messages::push_error(format!("Invalid file format `{}` due to ↓ \n\n\t{:?}\n", script_path, error));
+            process::exit(1)            
+        }
+    };
+
     // start lexical analysis
     Lexer::lexerize(
-        &Lexer, str::from_utf8(script_source.get(..).unwrap()).unwrap()
+        &Lexer, source
     )
 }

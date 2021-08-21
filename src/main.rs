@@ -1,5 +1,4 @@
 use std::{env, process};
-use smartstring;
 
 // core code
 mod core;

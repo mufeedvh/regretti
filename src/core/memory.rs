@@ -17,6 +17,8 @@ pub trait Manager {
     fn alloc(key: String, value: String, datatype: Token);
 }
 
+// better assume: String(&'static str)
+
 pub static MEMORY_MAP: Lazy<Mutex<HashMap<String, MemoryLayout, RandomState>>> =
     Lazy::new(|| {
         Mutex::new(HashMap::default())
@@ -25,6 +27,7 @@ pub static MEMORY_MAP: Lazy<Mutex<HashMap<String, MemoryLayout, RandomState>>> =
 impl Manager for MemoryLayout {
     fn fetch(key: &str) -> Option<Self> {
         let memory_map = &MEMORY_MAP;
+
         if memory_map.lock().contains_key(key) {
             Some(*memory_map.lock().get(key).unwrap())
         } else {
@@ -37,6 +40,7 @@ impl Manager for MemoryLayout {
             value: s32::new(&value).unwrap(),
             datatype,
         };
+        
         MEMORY_MAP.lock().insert(key, state);
     }
 }

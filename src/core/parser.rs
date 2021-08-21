@@ -37,8 +37,9 @@ impl Parser {
                         Token::Keyword => key = &slice_set[pointer],
                         token => {
                             if assigned {
+                                // get value
                                 let value = &slice_set[pointer];
-
+                                // allocate memory
                                 MemoryLayout::alloc(
                                     key.to_string(),
                                     value.to_string(),
@@ -72,8 +73,8 @@ impl Parser {
                     Token::Keyword => {
                         let keyword = &slice_set[0];
                         let value = self.slice.replace(keyword, "");
-
-                        let mem_return = MemoryLayout::fetch(&value.trim());
+                        let value = &value.trim();
+                        let mem_return = MemoryLayout::fetch(value);
 
                         if mem_return.is_some() {
                             let function = Function {
@@ -97,7 +98,19 @@ impl Parser {
                         };
                         Function::execute(&function)
                     },
-                    // handle math expression here
+                    Token::Number => {
+                        let keyword = &slice_set[0];
+                        let value = self.slice.replace(keyword, "");
+
+                        // evaluate math expressions
+                        let ret = Function::math_evaluator(&value).to_string();
+
+                        let function = Function {
+                            keyword: keyword.trim().to_string(),
+                            value: ret,
+                        };
+                        Function::execute(&function)
+                    }
                     _ => (),
                 }
             },

@@ -70,6 +70,8 @@ pub enum Token {
     #[regex("[0-9]+")]
     Number,
 
+    Math,
+
     #[regex("\"(.*)\"")]
     String,
 
@@ -132,6 +134,9 @@ use regex::Regex;
 // parser grammar
 pub static STATEMENT: Lazy<Regex> = Lazy::new(|| Regex::new(r"\|(.*)\|").unwrap());
 pub static STRING: Lazy<Regex> = Lazy::new(|| Regex::new("\"(.*)\"").unwrap());
+
+// debug grammar:
+// pub static MATH: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d+(\s*[+\-*/]\s*\d+)+$").unwrap());
 // pub static KEYWORD: Lazy<Regex> = Lazy::new(|| Regex::new("[a-zA-Z_]+").unwrap());
 
 /// Returns the token type from grammar matches
