@@ -1,14 +1,20 @@
-# `regretti` <img src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/google/298/pinched-fingers_1f90c.png" height="32" width="32" alt="github doesn't have this emoji :(">🍝
+<div align="center">
+    <h1><code>regretti</code> <img src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/google/298/pinched-fingers_1f90c.png" height="32" width="32" alt="github doesn't have this emoji :(">🍝</h1>
+</div>
 
-A programming language where comments are the first-class citizen and ASCII art flowcharts are the controls!
+<p align="center">
+<strong><i>A programming language where comments are the first-class citizen and ASCII art flowcharts are the controls!</i></strong>
+</p>
 
-The language comes with epic features like Parallel Executors (threads), Algebraic Math Expressions, ✨Coloring✨!
+---
 
-_Made as part of the Lang Jam (`jam0001`)._
+The language comes with epic features like **Parallel Executors** (`threads`), **Algebraic Math Expression** support, and **Coloring**!
 
-### Summary
+_Made as part of the [Lang Jam (`jam0001`)](https://github.com/langjam/jam0001) theme: **first-class comments**._
 
-What if all those `TODO:` comments and beautiful ASCII art diagrams in your code comments actually worked? Presenting you the one and only `regretti`, write your `spaghetti` and `forgetti`!
+## Summary
+
+What if all those "`TODO:`" comments and beautiful ASCII art diagrams in your code actually worked? Presenting you the one and only _regretti_, write your _spaghetti_ and _forgetti_!
 
 > _Basically, I took the theme "literally"!_
 
