@@ -1,0 +1,13 @@
+main:
+    /*
+        +-----------+
+        | print "r" |
+        | print "a" |
+        | print "i" |
+        | print "n" |
+        | print "b" |
+        | print "o" |
+        | print "w" |
+        +-----------+
+    */
+:end
