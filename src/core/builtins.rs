@@ -18,9 +18,6 @@ pub trait Builtin {
     fn math_evaluator(expression: &str) -> f64;
 }
 
-use unescape::unescape;
-use fasteval::{ez_eval, EmptyNamespace};
-
 impl Builtin for Function {
     // execute handles all function calls and optionally returns a value if there is
     fn execute(&self) -> Option<String> {
@@ -31,10 +28,13 @@ impl Builtin for Function {
                 self.print();
                 None
             },
+
             // special functions
             "input()" => {
                 Some(self.input())
             },
+
+            // who dis?
             _ => {
                 push_error(
                     format!("Function named `{}` does not exist.", self.keyword)
@@ -46,6 +46,7 @@ impl Builtin for Function {
 
     fn print(&self) {
         use std::io::{BufWriter, Write};
+        use unescape::unescape;
 
         // get a locked buffered writer to stdout
         let stdout = std::io::stdout();
@@ -119,6 +120,7 @@ impl Builtin for Function {
     }
 
     fn math_evaluator(expression: &str) -> f64 {
+        use fasteval::{ez_eval, EmptyNamespace};
         let mut ns = EmptyNamespace;
 
         let result = match ez_eval(expression, &mut ns) {

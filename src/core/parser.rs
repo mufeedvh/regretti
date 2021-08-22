@@ -2,7 +2,7 @@ use super::{
     lexer::{Lexer, Analyser},
     tokens::*,
     builtins::{Function, Builtin},
-    states::ProgramState,
+    states::{ProgramState, Operation},
     memory::{MemoryLayout, Value, Manager},
     messages::*,
 };
@@ -17,7 +17,7 @@ use std::str;
 
 impl Parser {
     // parsing is performed in a deterministic syntax tree lookup
-    // everything is defined for assignment and execution seperately because of different behaviours
+    // everything is seperately defined for assignment and execution because of different behaviours
     pub fn parse(&self) {
         match self.token {
             Token::Variable => {
@@ -33,8 +33,6 @@ impl Parser {
                     assigned = true;
                 }
 
-                println!("{:?}", token_set);
-
                 // only if the value being assigned is a math expression
                 if token_set.contains(&Token::Math) {
                     let mut expression = String::new();
@@ -48,7 +46,6 @@ impl Parser {
                                     key = value;
                                     key_set = true;
                                 } else {
-                                    println!("{}", value);
                                     // handle variables and assemble math expression with their respective values
                                     if Lexer::tokenize(&Lexer, value)[0] == Token::Number {
                                         expression.push_str(value)
@@ -307,22 +304,343 @@ impl Parser {
                 }
             },
             Token::Statement => {
-                // a statement should only be executed inside a command block of course!
-                let state = ProgramState::read_state();
-                // verify command block state
-                if state.function == Token::CommandStart {
+                // // a statement should only be executed inside a command block of course!
+                // let state = ProgramState::read_state();
+                // // verify command block state
+                // let curr_function = state.function;
+                // unresolved conditionals (`Token::ConditionMet`) shouldn't proceed actions
+                // if curr_function == Token::CommandStart {
                     // parse command
-                    let statement = self.slice.replace("|", "");
+                    let statement = &self.slice;
+
+                    // construct statement
+                    let mut parsed_slice: &str = "";
+
+                    if statement.starts_with("|") && statement.ends_with("|") {
+                        parsed_slice = &statement[1..statement.len() - 1];
+                    }
+
                     // a statement contains a keyword and it's arguments
                     let parser = Self {
                         token: Token::Keyword,
-                        slice: statement.trim().to_string(),
+                        slice: parsed_slice.trim().to_string(),
                     };
                     // execute keyword functions via recursive parsing
                     parser.parse()
+                // }
+                // else {
+                //     push_error("You cannot execute `function` statements outside comments.".to_string());
+                //     process::exit(1)
+                // }
+            },
+            Token::IfCondition => {
+                // a statement should only be executed inside a command block of course!
+                // // verify command block state
+                // if state.function == Token::CommandStart {
+                    // if condition is met, skip if statements (readtime++)
+                    // if state.function == Token::IfCondition {
+                        // parse command
+                let seperator = self.slice.split("->");
+
+                // parse flow chart
+                for mut conditionals in seperator {
+                    // construct statement
+                    let mut statement: &str = "";
+
+                    conditionals = conditionals.trim();
+                    let mut parse_chars = conditionals.chars();
+
+                    statement = parse_chars.as_str();
+                    while parse_chars.as_str().ends_with("-") {
+                        parse_chars.next_back();
+                        statement = parse_chars.as_str()
+                    }
+
+                    // parse statement
+                    if statement.starts_with("|") && statement.ends_with("|") {
+                        statement = &statement[1..statement.len() - 1];
+                    }                            
+
+                    let parser: Self;
+                    statement = statement.trim();
+
+                    if statement.starts_with("if") {
+                        parser = Self {
+                            token: Token::ConditionHandler,
+                            slice: statement.to_string(),
+                        };
+
+                        parser.parse()
+                    } else {
+                        let state = ProgramState::read_state();
+                        if state.function == Token::ConditionMet || state.function == Token::IfCondition {
+                            parser = Self {
+                                token: Token::Keyword,
+                                slice: statement.to_string(),
+                            };
+
+                            parser.parse()
+                        }
+                    }
+                }
+                    // }              
+                // }
+                // else {
+                //     println!("BRUH: {}", self.slice);
+                //     push_error("You cannot execute `if` statements outside comments.".to_string());
+                //     process::exit(1)
+                // }                
+            },
+            Token::ConditionHandler => {
+                let conditionals = &self.slice;
+
+                let mut candidates: &str = "";
+
+                // I just remembered i have to be somewhere... rushing time
+
+                // parse statement
+                if conditionals.starts_with("if") {
+                    let mut parse_chars = conditionals.chars();
+                    for _ in 0..2 {
+                        parse_chars.next();
+                    }
+                    candidates = parse_chars.as_str();
+                }
+
+                // get candidations on an existential crisis
+                let token_set = Lexer::tokenize(&Lexer, candidates);
+                let slice_set = Lexer::slice(&Lexer, candidates);
+                
+                if slice_set.len() == 3 {
+                    let first_conditional = (&slice_set[0], token_set[0]);
+                    let check = token_set[1];
+                    let second_conditional = (&slice_set[2], token_set[2]);
+
+                    let mut first_temp = String::new();
+                    let mut second_temp = String::new();
+
+                    match first_conditional {
+                        (key, Token::Keyword) => {
+                            let mem_return = MemoryLayout::fetch(key);
+
+                            if mem_return.is_some() {
+                                let value = match mem_return.unwrap() {
+                                    Value::String(value) => value,
+                                    Value::FInt(value) => value.to_string(),
+                                    Value::Int(value) => value.to_string(),
+                                    Value::Nothing => unimplemented!(),
+                                };
+    
+                                first_temp = value
+                            } else {
+                                push_error(
+                                    format!("`{}` is not initialized.", key)
+                                );
+                                process::exit(1)
+                            }
+                        },
+                        (value, _) => first_temp = value.to_string(),
+                    }
+
+                    match second_conditional {
+                        (key, Token::Keyword) => {
+                            let mem_return = MemoryLayout::fetch(key);
+
+                            if mem_return.is_some() {
+                                let value = match mem_return.unwrap() {
+                                    Value::String(value) => value,
+                                    Value::FInt(value) => value.to_string(),
+                                    Value::Int(value) => value.to_string(),
+                                    Value::Nothing => unimplemented!(),
+                                };
+    
+                                second_temp = value
+                            } else {
+                                push_error(
+                                    format!("`{}` is not initialized.", key)
+                                );
+                                process::exit(1)
+                            }
+                        },
+                        (value, _) => second_temp = value.to_string(),
+                    }
+
+                    let mut result: bool = false;
+
+                    // format based on tokens
+                    first_temp = match Lexer::tokenize(&Lexer, &first_temp)[0] {
+                        // numbers represent as they are
+                        Token::Number => first_temp,
+                        // strings/objects need formatting (avoid pretty print)
+                        Token::String => {
+                            let mut chars = first_temp.trim().chars();
+                            chars.next();
+                            chars.next_back();
+                            chars.as_str().to_string()
+                        },
+                        _ => first_temp,
+                    };
+
+                    second_temp = match Lexer::tokenize(&Lexer, &second_temp)[0] {
+                        // numbers represent as they are
+                        Token::Number => second_temp,
+                        // strings/objects need formatting (avoid pretty print)
+                        Token::String => {
+                            let mut chars = second_temp.trim().chars();
+                            chars.next();
+                            chars.next_back();
+                            chars.as_str().to_string()
+                        },
+                        _ => second_temp,
+                    };
+
+                    // whitespace on both ends should be cleared
+                    // NOTE: what if user puts that in? I will deal with that later, I gotta rush now
+                    first_temp = first_temp.trim().to_string();
+                    second_temp = second_temp.trim().to_string();
+
+                    match check {
+                        Token::Equals => {
+                            if first_temp == second_temp {
+                                result = true
+                            } else {
+                                result = false
+                            }
+                        },
+                        Token::NotEquals => {
+                            if first_temp != second_temp {
+                                result = true
+                            } else {
+                                result = false
+                            }
+                        },
+                        Token::GreaterThan => {
+                            let first_temp = match first_temp.parse::<i32>() {
+                                Ok(first_temp) => first_temp,
+                                Err(_) => {
+                                    push_error(
+                                        format!("`{}` is not an integer to compare with.", first_temp)
+                                    );
+                                    process::exit(1)                                    
+                                }
+                            };
+
+                            let second_temp = match second_temp.parse::<i32>() {
+                                Ok(second_temp) => second_temp,
+                                Err(_) => {
+                                    push_error(
+                                        format!("`{}` is not an integer to compare with.", second_temp)
+                                    );
+                                    process::exit(1)                                    
+                                }
+                            };
+
+                            if first_temp > second_temp {
+                                result = true
+                            } else {
+                                result = false
+                            }
+                        },
+                        Token::LesserThan => {
+                            let first_temp = match first_temp.parse::<i32>() {
+                                Ok(first_temp) => first_temp,
+                                Err(_) => {
+                                    push_error(
+                                        format!("`{}` is not an integer to compare with.", first_temp)
+                                    );
+                                    process::exit(1)                                    
+                                }
+                            };
+
+                            let second_temp = match second_temp.parse::<i32>() {
+                                Ok(second_temp) => second_temp,
+                                Err(_) => {
+                                    push_error(
+                                        format!("`{}` is not an integer to compare with.", second_temp)
+                                    );
+                                    process::exit(1)                                    
+                                }
+                            };
+
+                            if first_temp < second_temp {
+                                result = true
+                            } else {
+                                result = false
+                            }
+                        },
+                        Token::GreaterThanOrEquals => {
+                            let first_temp = match first_temp.parse::<i32>() {
+                                Ok(first_temp) => first_temp,
+                                Err(_) => {
+                                    push_error(
+                                        format!("`{}` is not an integer to compare with.", first_temp)
+                                    );
+                                    process::exit(1)                                    
+                                }
+                            };
+
+                            let second_temp = match second_temp.parse::<i32>() {
+                                Ok(second_temp) => second_temp,
+                                Err(_) => {
+                                    push_error(
+                                        format!("`{}` is not an integer to compare with.", second_temp)
+                                    );
+                                    process::exit(1)                                    
+                                }
+                            };
+
+                            if first_temp >= second_temp {
+                                result = true
+                            } else {
+                                result = false
+                            }
+                        },
+                        Token::LesserThanOrEquals => {
+                            let first_temp = match first_temp.parse::<i32>() {
+                                Ok(first_temp) => first_temp,
+                                Err(_) => {
+                                    push_error(
+                                        format!("`{}` is not an integer to compare with.", first_temp)
+                                    );
+                                    process::exit(1)                                    
+                                }
+                            };
+
+                            let second_temp = match second_temp.parse::<i32>() {
+                                Ok(second_temp) => second_temp,
+                                Err(_) => {
+                                    push_error(
+                                        format!("`{}` is not an integer to compare with.", second_temp)
+                                    );
+                                    process::exit(1)                                    
+                                }
+                            };
+
+                            if first_temp <= second_temp {
+                                result = true
+                            } else {
+                                result = false
+                            }
+                        },
+                        _ => (),
+                    }
+
+                    if result {
+                        ProgramState::set_state(
+                            Token::ConditionMet,
+                            Operation::StateChange,
+                            0,
+                        )
+                    } else {
+                        ProgramState::set_state(
+                            Token::ConditionNotMet,
+                            Operation::StateChange,
+                            0,
+                        )                        
+                    }
                 } else {
-                    push_error("You cannot execute statements outside comments.".to_string());
-                    process::exit(1)
+                    push_error("Improper if statement found.".to_string());
+                    process::exit(1)                    
                 }
             }
             _ => (),

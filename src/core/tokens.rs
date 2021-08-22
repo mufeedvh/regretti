@@ -16,8 +16,13 @@ pub enum Token {
     #[token("let")]
     Variable,
 
-    #[token("if")]
     IfCondition,
+
+    ConditionMet,
+
+    ConditionNotMet,
+
+    ConditionHandler,
 
     ///
     /// ```
@@ -50,7 +55,6 @@ pub enum Token {
     Statement,
 
     #[token("\n")]
-    #[token("--")]
     Newline,
 
     #[regex(r"[a-zA-Z_]+\((.*)\)\?")]
@@ -61,6 +65,9 @@ pub enum Token {
 
     #[regex("[a-zA-Z_]+")]
     Keyword,
+
+    #[token("v")]
+    ElseCondition,
 
     #[regex(r"\#(.*)", logos::skip)]
     Comments,
@@ -139,13 +146,19 @@ use regex::Regex;
 pub static STATEMENT: Lazy<Regex> = Lazy::new(|| Regex::new(r"\|(.*)\|").unwrap());
 pub static STRING: Lazy<Regex> = Lazy::new(|| Regex::new("\"(.*)\"").unwrap());
 pub static MATH: Lazy<Regex> = Lazy::new(|| Regex::new(r"[+\-*/]").unwrap());
+pub static IF_FLOW_RIGHT: Lazy<Regex> = Lazy::new(|| Regex::new("-(.*)>").unwrap());
+pub static BLOCK: Lazy<Regex> = Lazy::new(|| Regex::new(r"\+(.*)\+").unwrap());
 
 /// Returns the token type from grammar matches
 pub fn token_grammar(slice: &str) -> Token {
-    if STATEMENT.is_match(slice) {
+    if IF_FLOW_RIGHT.is_match(slice) {
+        Token::IfCondition    
+    } else if STATEMENT.is_match(slice) {
         Token::Statement
     } else if STRING.is_match(slice) {
         Token::String
+    } else if BLOCK.is_match(slice) {
+        Token::Skipped        
     } else {
         // expression capture
         if MATH.captures(slice).is_some() {

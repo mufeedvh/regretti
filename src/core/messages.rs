@@ -63,7 +63,7 @@ pub fn push_warning(message: String) {
 /// push help banner
 pub fn push_help() {
     // banner message is embedded into the binary at compile-time
-    const HELP: &str = include_str!("../extras/banner");
+    const HELP: &str = include_str!("../utils/banner");
     put_stdout(
         format!(
             "{}",

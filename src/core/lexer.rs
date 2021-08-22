@@ -34,6 +34,27 @@ impl Analyser for Lexer {
             },
             Token::String => Some(Token::String),
             Token::Math => Some(Token::Math),
+            Token::IfCondition => {
+                let state = ProgramState::read_state();
+
+                // lexer skip if conditions are met on state to avoid parsing unneeded blocks
+                match state.function {
+                    Token::ConditionMet => return None,
+                    _ => {
+                        ProgramState::set_state(
+                            Token::IfCondition,
+                            Operation::StateChange,
+                            0
+                        );
+                        let slice_parse = Parser {
+                            token: Token::IfCondition,
+                            slice: slice.to_string(),
+                        };
+                        Parser::parse(&slice_parse);                                                                               
+                    }
+                }
+                None
+            },
             _ => None
         }
     }
@@ -41,6 +62,8 @@ impl Analyser for Lexer {
     fn tokenize(&self, slice: &str) -> Vec<Token> {
         let mut lex = Token::lexer(slice);
         // maximum statement scope stays 4
+        // confident lookaheads here -> on assignments lexer decides slice type based on format
+        // parser takes care of the rest (i hope lol)
         let mut tokens: Vec<Token> = Vec::with_capacity(4);
 
         loop {
@@ -55,9 +78,6 @@ impl Analyser for Lexer {
                             tokens.push(token.unwrap())
                         }
                     },
-                    // Some(Token::Add) => {
-                    //     println!("bro: {}", slice)
-                    // }
                     _ => tokens.push(curr_token)
                 }
             } else {
@@ -68,7 +88,6 @@ impl Analyser for Lexer {
         tokens
     }
 
-    // umm... why?? (debug)
     fn slice(&self, slice: &str) -> Vec<String> {
         let mut lex = Token::lexer(slice);
         // maximum statement scope stays 4
@@ -103,7 +122,7 @@ impl Analyser for Lexer {
         loop {
             let (token, _span, slice) = (lex.next(), lex.span(), lex.slice());
     
-            // println!("{:?} :: {:?}", slice, token);
+            // println!("\n\n{:?} :: {:?}", slice, token);
     
             match token {
                 // line coint
@@ -114,7 +133,7 @@ impl Analyser for Lexer {
                         Token::MainFunction,
                         Operation::StateChange,
                         line
-                    )
+                    );                
                 },
                 // end of a function
                 Some(Token::FunctionEnd) => {
@@ -178,7 +197,9 @@ impl Analyser for Lexer {
                     Parser::parse(&slice_parse);
                 },
                 // stepped parsing
-                Some(Token::PassLex) => { self.analyse(slice); },
+                Some(Token::PassLex) => {
+                    self.analyse(slice);
+                },
                 // finish point
                 None => process::exit(0),
                 // nope!
