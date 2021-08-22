@@ -11,6 +11,7 @@ pub enum Operation {
     Threads,
     StateChange,
     Loop(i32),
+    CurrIter(i32),
 }
 
 #[derive(Copy, Clone)]

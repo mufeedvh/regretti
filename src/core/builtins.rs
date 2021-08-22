@@ -17,6 +17,7 @@ pub trait Builtin {
     fn print(&self);
     fn input(&self) -> String;
     fn for_loop(&self);
+    fn loop_back();
     fn math_evaluator(expression: &str) -> f64;
 }
 
@@ -143,6 +144,32 @@ impl Builtin for Function {
             Operation::Loop(value),
             0
         )
+    }
+
+    fn loop_back() {
+        use super::memory::{MemoryLayout, Value, Manager};
+
+        let mem_fetch = MemoryLayout::fetch("<CODEBODY>");
+
+        if mem_fetch.is_some() {
+            let code_slice = match MemoryLayout::fetch("<CODEBODY>").unwrap() {
+                Value::String(code_slice) => code_slice,
+                _ => unreachable!(),
+            };
+    
+            let state = ProgramState::read_state();
+    
+            let iter_count = match state.operation {
+                Operation::Loop(iter_count) => iter_count,
+                _ => 0,
+            };
+    
+            for _ in 0..(iter_count-1) {
+                Lexer::analyse(
+                    &Lexer, &code_slice
+                );
+            }
+        }
     }
 
     fn input(&self) -> String {

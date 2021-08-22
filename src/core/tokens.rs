@@ -26,6 +26,8 @@ pub enum Token {
 
     Loop,
 
+    LoopBack,
+
     ///
     /// ```
     /// main:
@@ -143,9 +145,11 @@ use regex::Regex;
 
 // parser grammar
 pub static STATEMENT: Lazy<Regex> = Lazy::new(|| Regex::new(r"\|(.*)\|").unwrap());
+pub static LOOP_BACK: Lazy<Regex> = Lazy::new(|| Regex::new(r"\|(.*)\^").unwrap());
 pub static STRING: Lazy<Regex> = Lazy::new(|| Regex::new("\"(.*)\"").unwrap());
 pub static MATH: Lazy<Regex> = Lazy::new(|| Regex::new(r"[+\-*/]").unwrap());
 pub static IF_FLOW_RIGHT: Lazy<Regex> = Lazy::new(|| Regex::new("-(.*)>").unwrap());
+pub static IF_FLOW_LEFT: Lazy<Regex> = Lazy::new(|| Regex::new("<(.*)-").unwrap());
 pub static ELSE_BLOCK: Lazy<Regex> = Lazy::new(|| Regex::new("\\|(.*)else").unwrap());
 pub static BLOCK: Lazy<Regex> = Lazy::new(|| Regex::new(r"\+(.*)\+").unwrap());
 
@@ -155,14 +159,20 @@ pub static BLOCK: Lazy<Regex> = Lazy::new(|| Regex::new(r"\+(.*)\+").unwrap());
 pub fn token_grammar(slice: &str) -> Token {
     if IF_FLOW_RIGHT.is_match(slice) {
         Token::IfCondition
+    } else if IF_FLOW_LEFT.is_match(slice) {
+        Token::LoopBack
     } else if ELSE_BLOCK.is_match(slice) {
         Token::Statement
     } else if STATEMENT.is_match(slice) {
         Token::Statement
+    } else if LOOP_BACK.is_match(slice) {
+        use super::builtins::{Function, Builtin};
+        Function::loop_back();
+        Token::Skipped
     } else if STRING.is_match(slice) {
         Token::String
     } else if BLOCK.is_match(slice) {
-        Token::Skipped        
+        Token::Skipped
     } else {
         // expression capture
         if MATH.captures(slice).is_some() {

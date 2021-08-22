@@ -191,116 +191,114 @@ impl Parser {
 
                 // creating value set
                 // `token_set[1]` is the argument to a keyword
-                if token_set.len() < 1 {
-                    return
-                }
-
-                match token_set[1] {
-                    Token::Keyword => {
-                        let keyword = &slice_set[0];
-                        let value = self.slice.replace(keyword, "");
-                        let value = &value.trim();
-
-                        // evaluating math expressions executed from a keyword
-                        if token_set.contains(&Token::Math) {
-                            let mut construct = String::new();
-                            let temp_eval = value.chars();
-                            for c in temp_eval {
-                                match c {
-                                    '+' | '-' | '*' | '/' => {
-                                        let append = format!(" {} ", c);
-                                        construct.push_str(&append)
-                                    },
-                                    _ => construct.push(c)
+                if token_set.len() > 1 {
+                    match token_set[1] {
+                        Token::Keyword => {
+                            let keyword = &slice_set[0];
+                            let value = self.slice.replace(keyword, "");
+                            let value = &value.trim();
+    
+                            // evaluating math expressions executed from a keyword
+                            if token_set.contains(&Token::Math) {
+                                let mut construct = String::new();
+                                let temp_eval = value.chars();
+                                for c in temp_eval {
+                                    match c {
+                                        '+' | '-' | '*' | '/' => {
+                                            let append = format!(" {} ", c);
+                                            construct.push_str(&append)
+                                        },
+                                        _ => construct.push(c)
+                                    }
                                 }
-                            }
-                            let construct = construct.split(" ");
-                            let mut expression = String::new();
-                            for c in construct {
-                                // denoting a math expression
-                                match c {
-                                    "+" | "-" | "*" | "/" | "" => expression.push_str(c),
-                                    _ => {
-                                        if Lexer::tokenize(&Lexer, c)[0] == Token::Number {
-                                            expression.push_str(c)
-                                        } else {
-                                            let mem_return = MemoryLayout::fetch(c);
-                                            if mem_return.is_some() {
-                                                let value = match mem_return.unwrap() {
-                                                    Value::String(value) => value,
-                                                    Value::FInt(value) => value.to_string(),
-                                                    Value::Int(value) => value.to_string(),
-                                                    Value::Nothing => unimplemented!(),
-                                                };
-                                                expression.push_str(&value)
+                                let construct = construct.split(" ");
+                                let mut expression = String::new();
+                                for c in construct {
+                                    // denoting a math expression
+                                    match c {
+                                        "+" | "-" | "*" | "/" | "" => expression.push_str(c),
+                                        _ => {
+                                            if Lexer::tokenize(&Lexer, c)[0] == Token::Number {
+                                                expression.push_str(c)
                                             } else {
-                                                push_error(
-                                                    format!("`{}` is not initialized.", value)
-                                                );
-                                                process::exit(1)
+                                                let mem_return = MemoryLayout::fetch(c);
+                                                if mem_return.is_some() {
+                                                    let value = match mem_return.unwrap() {
+                                                        Value::String(value) => value,
+                                                        Value::FInt(value) => value.to_string(),
+                                                        Value::Int(value) => value.to_string(),
+                                                        Value::Nothing => unimplemented!(),
+                                                    };
+                                                    expression.push_str(&value)
+                                                } else {
+                                                    push_error(
+                                                        format!("`{}` is not initialized.", value)
+                                                    );
+                                                    process::exit(1)
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-
-                            // evaluate math expressions
-                            let ret = Function::math_evaluator(&expression).to_string();
-
-                            let function = Function {
-                                keyword: keyword.trim().to_string(),
-                                value: ret,
-                            };
-
-                            Function::execute(&function);
-                        } else {
-                            let mem_return = MemoryLayout::fetch(value);
-
-                            if mem_return.is_some() {
-                                let value = match mem_return.unwrap() {
-                                    Value::String(value) => value,
-                                    Value::FInt(value) => value.to_string(),
-                                    Value::Int(value) => value.to_string(),
-                                    Value::Nothing => unimplemented!(),
-                                };
+    
+                                // evaluate math expressions
+                                let ret = Function::math_evaluator(&expression).to_string();
     
                                 let function = Function {
                                     keyword: keyword.trim().to_string(),
-                                    value,
+                                    value: ret,
                                 };
     
                                 Function::execute(&function);
                             } else {
-                                push_error(
-                                    format!("`{}` is not initialized.", value)
-                                );
-                                process::exit(1)
+                                let mem_return = MemoryLayout::fetch(value);
+    
+                                if mem_return.is_some() {
+                                    let value = match mem_return.unwrap() {
+                                        Value::String(value) => value,
+                                        Value::FInt(value) => value.to_string(),
+                                        Value::Int(value) => value.to_string(),
+                                        Value::Nothing => unimplemented!(),
+                                    };
+        
+                                    let function = Function {
+                                        keyword: keyword.trim().to_string(),
+                                        value,
+                                    };
+        
+                                    Function::execute(&function);
+                                } else {
+                                    push_error(
+                                        format!("`{}` is not initialized.", value)
+                                    );
+                                    process::exit(1)
+                                }
                             }
                         }
-                    }
-                    Token::String => {
-                        keyword = STRING.replace_all(&self.slice, "").to_string();
-                        value = self.slice.replace(&keyword, "");
-                        let function = Function {
-                            keyword: keyword.trim().to_string(),
-                            value,
-                        };
-                        Function::execute(&function);
-                    },
-                    Token::Number => {
-                        let keyword = &slice_set[0];
-                        let value = self.slice.replace(keyword, "");
-
-                        // evaluate math expressions
-                        let ret = Function::math_evaluator(&value).to_string();
-
-                        let function = Function {
-                            keyword: keyword.trim().to_string(),
-                            value: ret,
-                        };
-                        Function::execute(&function);
-                    }
-                    _ => (),
+                        Token::String => {
+                            keyword = STRING.replace_all(&self.slice, "").to_string();
+                            value = self.slice.replace(&keyword, "");
+                            let function = Function {
+                                keyword: keyword.trim().to_string(),
+                                value,
+                            };
+                            Function::execute(&function);
+                        },
+                        Token::Number => {
+                            let keyword = &slice_set[0];
+                            let value = self.slice.replace(keyword, "");
+    
+                            // evaluate math expressions
+                            let ret = Function::math_evaluator(&value).to_string();
+    
+                            let function = Function {
+                                keyword: keyword.trim().to_string(),
+                                value: ret,
+                            };
+                            Function::execute(&function);
+                        }
+                        _ => (),
+                    }                    
                 }
             },
             Token::Statement => {
@@ -318,9 +316,18 @@ impl Parser {
 
                     // parse statement
                     let mut rem_token = parsed_slice.chars();
-                    while parsed_slice.starts_with("|") && parsed_slice.ends_with("|") {
+                    while parsed_slice.ends_with("|") {
                         rem_token.next();
                         rem_token.next_back();
+                        parsed_slice = rem_token.as_str();
+                    }
+
+                    // remove whitespace
+                    parsed_slice = parsed_slice.trim();
+
+                    let mut rem_token = parsed_slice.chars();
+                    while parsed_slice.starts_with("|") {
+                        rem_token.next();
                         parsed_slice = rem_token.as_str();
                     }
 
@@ -351,11 +358,21 @@ impl Parser {
                             parser.parse()
                         }
                     } else {
+                        let mut parser: Self;
+
                         // a statement contains a keyword and it's arguments
-                        let parser = Self {
+                        parser = Self {
                             token: Token::Keyword,
                             slice: parsed_slice.trim().to_string(),
                         };
+
+                        if parsed_slice.trim().starts_with("let") {
+                            parser = Self {
+                                token: Token::Variable,
+                                slice: parsed_slice.trim().to_string(),
+                            };
+                        }                        
+
                         // execute keyword functions via recursive parsing
                         parser.parse()
                     }
@@ -677,6 +694,40 @@ impl Parser {
                     push_error("Improper if statement found.".to_string());
                     process::exit(1)                    
                 }
+            },
+            Token::LoopBack => {
+                let seperator = self.slice.split("<-");
+
+                // parse flow chart
+                for mut conditionals in seperator {
+                    // construct statement
+                    let mut statement: &str = "";
+
+                    conditionals = conditionals.trim();
+                    let mut parse_chars = conditionals.chars();
+
+                    statement = parse_chars.as_str();
+                    while parse_chars.as_str().ends_with("-") {
+                        parse_chars.next_back();
+                        statement = parse_chars.as_str()
+                    }
+
+                    // parse statement
+                    let mut rem_token = statement.chars();
+                    while statement.starts_with("|") && statement.ends_with("|") {
+                        rem_token.next();
+                        rem_token.next_back();
+                        statement = rem_token.as_str()
+                    }
+
+                    // a statement contains a keyword and it's arguments
+                    let parser = Self {
+                        token: Token::Keyword,
+                        slice: statement.trim().to_string(),
+                    };
+                    // execute keyword functions via recursive parsing
+                    parser.parse()                    
+                }                
             }
             _ => (),
         }
