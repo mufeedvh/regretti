@@ -10,6 +10,7 @@ pub enum Operation {
     Allocation,
     Threads,
     StateChange,
+    Loop(i32),
 }
 
 #[derive(Copy, Clone)]

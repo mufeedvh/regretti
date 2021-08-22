@@ -18,13 +18,13 @@ pub enum Token {
 
     IfCondition,
 
-    ElseCondition,
-
     ConditionMet,
 
     ConditionNotMet,
 
     ConditionHandler,
+
+    Loop,
 
     ///
     /// ```

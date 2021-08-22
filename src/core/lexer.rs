@@ -22,40 +22,95 @@ pub trait Analyser {
 impl Analyser for Lexer {
     // stepped analysis
     fn analyse(&self, slice: &str) -> Option<Token> {
-        // statement grammar
-        match token_grammar(slice) {
-            Token::Statement => {
-                let slice_parse = Parser {
-                    token: Token::Statement,
-                    slice: slice.to_string(),
-                };
-                Parser::parse(&slice_parse);
-                None
-            },
-            Token::String => Some(Token::String),
-            Token::Math => Some(Token::Math),
-            Token::IfCondition => {
-                let state = ProgramState::read_state();
+        let state = ProgramState::read_state();
 
-                // lexer skip if conditions are met on state to avoid parsing unneeded blocks
-                match state.function {
-                    Token::ConditionMet => return None,
-                    _ => {
-                        ProgramState::set_state(
-                            Token::IfCondition,
-                            Operation::StateChange,
-                            0
-                        );
+        // TODO: it's seperated for now, make it a single block with default iteration count as 1
+        // running inside a loop state
+        if state.function == Token::Loop {
+            let mut iter_count: i32 = 1;
+            iter_count = match state.operation {
+                Operation::Loop(count) => {
+                    println!("{}", count);
+                    count
+                },
+                _ => iter_count,
+            };
+
+            // iterate parser `iter_count` times
+            for _ in 0..iter_count {
+                // statement grammar
+                match token_grammar(slice) {
+                    Token::Statement => {
                         let slice_parse = Parser {
-                            token: Token::IfCondition,
+                            token: Token::Statement,
                             slice: slice.to_string(),
                         };
-                        Parser::parse(&slice_parse);                                                                               
+                        Parser::parse(&slice_parse);
+                        return None
+                    },
+                    Token::String => return Some(Token::String),
+                    Token::Math => return Some(Token::Math),
+                    Token::IfCondition => {
+                        let state = ProgramState::read_state();
+
+                        // lexer skip if conditions are met on state to avoid parsing unneeded blocks
+                        match state.function {
+                            Token::ConditionMet => return None,
+                            _ => {
+                                ProgramState::set_state(
+                                    Token::IfCondition,
+                                    Operation::StateChange,
+                                    0
+                                );
+                                let slice_parse = Parser {
+                                    token: Token::IfCondition,
+                                    slice: slice.to_string(),
+                                };
+                                Parser::parse(&slice_parse);                                                                               
+                            }
+                        }
+                        return None
+                    },
+                    _ => return None
+                }                
+            }
+            None
+        } else {
+            // statement grammar
+            match token_grammar(slice) {
+                Token::Statement => {
+                    let slice_parse = Parser {
+                        token: Token::Statement,
+                        slice: slice.to_string(),
+                    };
+                    Parser::parse(&slice_parse);
+                    return None
+                },
+                Token::String => return Some(Token::String),
+                Token::Math => return Some(Token::Math),
+                Token::IfCondition => {
+                    let state = ProgramState::read_state();
+
+                    // lexer skip if conditions are met on state to avoid parsing unneeded blocks
+                    match state.function {
+                        Token::ConditionMet => return None,
+                        _ => {
+                            ProgramState::set_state(
+                                Token::IfCondition,
+                                Operation::StateChange,
+                                0
+                            );
+                            let slice_parse = Parser {
+                                token: Token::IfCondition,
+                                slice: slice.to_string(),
+                            };
+                            Parser::parse(&slice_parse);                                                                               
+                        }
                     }
-                }
-                None
-            },
-            _ => None
+                    return None
+                },
+                _ => return None
+            }
         }
     }
 

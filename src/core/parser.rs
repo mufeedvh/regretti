@@ -22,7 +22,7 @@ impl Parser {
         match self.token {
             Token::Variable => {
                 let token_set = Lexer::tokenize(&Lexer, &self.slice);
-                let slice_set = Lexer::slice(&Lexer, &self.slice);
+                let slice_set = Lexer::slice(&Lexer, &self.slice);      
 
                 let mut key: &str = &self.slice;
                 let mut assigned: bool = false;
@@ -181,7 +181,6 @@ impl Parser {
                     }
                 }
             },
-            // SIDE NOTE FOR ME: keywords can be parsed like variables as well. (TODO maybe)
             Token::Keyword => {
                 let token_set = Lexer::tokenize(&Lexer, &self.slice);
                 let slice_set = Lexer::slice(&Lexer, &self.slice);
@@ -195,6 +194,7 @@ impl Parser {
                 if token_set.len() < 1 {
                     return
                 }
+
                 match token_set[1] {
                     Token::Keyword => {
                         let keyword = &slice_set[0];

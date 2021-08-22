@@ -1,6 +1,7 @@
 use super::{
     lexer::{Lexer, Analyser},
     tokens::Token,
+    states::{ProgramState, Operation},
     messages::*,
 };
 use std::panic;
@@ -15,6 +16,7 @@ pub trait Builtin {
     fn execute(&self) -> Option<String>;
     fn print(&self);
     fn input(&self) -> String;
+    fn for_loop(&self);
     fn math_evaluator(expression: &str) -> f64;
 }
 
@@ -26,6 +28,10 @@ impl Builtin for Function {
             // default functions
             "print" => {
                 self.print();
+                None
+            },
+            "loop" => {
+                self.for_loop();
                 None
             },
 
@@ -99,6 +105,46 @@ impl Builtin for Function {
         };
     }
 
+    fn math_evaluator(expression: &str) -> f64 {
+        use fasteval::{ez_eval, EmptyNamespace};
+        let mut ns = EmptyNamespace;
+
+        let result = match ez_eval(expression, &mut ns) {
+            Ok(result) => result,
+            Err(error) => {
+                push_error(
+                    format!("Could not evaluate math expression \n\n\t{}\ndue to ↓ \n\n\t{:?}\n", expression, error)
+                );
+                process::exit(1)
+            }
+        };
+
+        result
+    }
+
+    fn for_loop(&self) {
+        // get iteration count
+        let loop_count = &self.value;
+
+        // supplied NaN check
+        let value = match loop_count.parse::<i32>() {
+            Ok(value) => value,
+            Err(_) => {
+                push_error(
+                    format!("Loop requires an integer for iteration but received `{}`.", loop_count)
+                );
+                process::exit(1)
+            }
+        };
+
+        // set the program state to loop with's count
+        ProgramState::set_state(
+            Token::Loop,
+            Operation::Loop(value),
+            0
+        )
+    }
+
     fn input(&self) -> String {
         // input constructor
         let mut line = String::new();
@@ -117,22 +163,5 @@ impl Builtin for Function {
 
         // return constructed string from `stdin`
         line
-    }
-
-    fn math_evaluator(expression: &str) -> f64 {
-        use fasteval::{ez_eval, EmptyNamespace};
-        let mut ns = EmptyNamespace;
-
-        let result = match ez_eval(expression, &mut ns) {
-            Ok(result) => result,
-            Err(error) => {
-                push_error(
-                    format!("Could not evaluate math expression \n\n\t{}\ndue to ↓ \n\n\t{:?}\n", expression, error)
-                );
-                process::exit(1)
-            }
-        };
-
-        result
     }
 }
