@@ -1,6 +1,5 @@
 use std::io::{BufWriter, Write};
 use std::io::Result;
-use std::process;
 
 use colored::*;
 

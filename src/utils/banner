@@ -12,6 +12,3 @@
 
 USAGE:
     $ regretti <PATH-TO-SCRIPT>
-
-    Debug Token Tree:
-    $ regretti <PATH-TO-SCRIPT> tree

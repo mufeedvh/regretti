@@ -8,10 +8,10 @@ use once_cell::sync::Lazy;
 #[derive(Copy, Clone)]
 pub enum Operation {
     Allocation,
-    Threads,
+    _Threads,
     StateChange,
     Loop(i32),
-    CurrIter(i32),
+    _CurrIter(i32),
 }
 
 #[derive(Copy, Clone)]
