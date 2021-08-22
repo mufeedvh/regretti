@@ -18,6 +18,8 @@ pub enum Token {
 
     IfCondition,
 
+    ElseCondition,
+
     ConditionMet,
 
     ConditionNotMet,
@@ -65,9 +67,6 @@ pub enum Token {
 
     #[regex("[a-zA-Z_]+")]
     Keyword,
-
-    #[token("v")]
-    ElseCondition,
 
     #[regex(r"\#(.*)", logos::skip)]
     Comments,
@@ -147,12 +146,17 @@ pub static STATEMENT: Lazy<Regex> = Lazy::new(|| Regex::new(r"\|(.*)\|").unwrap(
 pub static STRING: Lazy<Regex> = Lazy::new(|| Regex::new("\"(.*)\"").unwrap());
 pub static MATH: Lazy<Regex> = Lazy::new(|| Regex::new(r"[+\-*/]").unwrap());
 pub static IF_FLOW_RIGHT: Lazy<Regex> = Lazy::new(|| Regex::new("-(.*)>").unwrap());
+pub static ELSE_BLOCK: Lazy<Regex> = Lazy::new(|| Regex::new("\\|(.*)else").unwrap());
 pub static BLOCK: Lazy<Regex> = Lazy::new(|| Regex::new(r"\+(.*)\+").unwrap());
 
 /// Returns the token type from grammar matches
+/// 
+/// This is matched based on priority, goal is to make fewer Regex matches
 pub fn token_grammar(slice: &str) -> Token {
     if IF_FLOW_RIGHT.is_match(slice) {
-        Token::IfCondition    
+        Token::IfCondition
+    } else if ELSE_BLOCK.is_match(slice) {
+        Token::Statement
     } else if STATEMENT.is_match(slice) {
         Token::Statement
     } else if STRING.is_match(slice) {

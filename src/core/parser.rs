@@ -314,19 +314,51 @@ impl Parser {
                     let statement = &self.slice;
 
                     // construct statement
-                    let mut parsed_slice: &str = "";
+                    let mut parsed_slice: &str = statement;
 
-                    if statement.starts_with("|") && statement.ends_with("|") {
-                        parsed_slice = &statement[1..statement.len() - 1];
+                    // parse statement
+                    let mut rem_token = parsed_slice.chars();
+                    while parsed_slice.starts_with("|") && parsed_slice.ends_with("|") {
+                        rem_token.next();
+                        rem_token.next_back();
+                        parsed_slice = rem_token.as_str();
                     }
 
-                    // a statement contains a keyword and it's arguments
-                    let parser = Self {
-                        token: Token::Keyword,
-                        slice: parsed_slice.trim().to_string(),
-                    };
-                    // execute keyword functions via recursive parsing
-                    parser.parse()
+                    // handle else statement
+                    if parsed_slice.trim().starts_with("else") {
+                        // get program state
+                        let state = ProgramState::read_state();
+
+                        // else statement runs when conditions are not met of if else statements
+                        if state.function == Token::ConditionNotMet {
+                            // else statements have functions, it should be met in the same condition
+                            let mut rem_token = parsed_slice.chars();
+                            parsed_slice = parsed_slice.trim();
+
+                            while parsed_slice.starts_with("else") {
+                                for _ in 0..5 {
+                                    rem_token.next();
+                                }
+                                parsed_slice = rem_token.as_str()
+                            }
+
+                            // a statement contains a keyword and it's arguments
+                            let parser = Self {
+                                token: Token::Keyword,
+                                slice: parsed_slice.trim().to_string(),
+                            };
+                            // execute keyword functions via recursive parsing
+                            parser.parse()
+                        }
+                    } else {
+                        // a statement contains a keyword and it's arguments
+                        let parser = Self {
+                            token: Token::Keyword,
+                            slice: parsed_slice.trim().to_string(),
+                        };
+                        // execute keyword functions via recursive parsing
+                        parser.parse()
+                    }
                 // }
                 // else {
                 //     push_error("You cannot execute `function` statements outside comments.".to_string());
@@ -357,9 +389,12 @@ impl Parser {
                     }
 
                     // parse statement
-                    if statement.starts_with("|") && statement.ends_with("|") {
-                        statement = &statement[1..statement.len() - 1];
-                    }                            
+                    let mut rem_token = statement.chars();
+                    while statement.starts_with("|") && statement.ends_with("|") {
+                        rem_token.next();
+                        rem_token.next_back();
+                        statement = rem_token.as_str()
+                    }
 
                     let parser: Self;
                     statement = statement.trim();
