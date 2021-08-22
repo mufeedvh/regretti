@@ -1,46 +1,62 @@
-use super::tokens::*;
-
 use parking_lot::Mutex;
+use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use ahash::RandomState;
-use once_cell::sync::Lazy;
-use copystr::s32;
 
-#[derive(Copy, Clone)]
+// every datatype is formatted upon emitting (atm)
+pub enum Value {
+    String(String),
+    FInt(f64),
+    Int(i32),
+    Nothing,
+}
+
+#[derive(Debug, Clone)]
 pub struct MemoryLayout {
-    pub(super) value: s32,
-    pub(super) datatype: Token,
+    pub(crate) value: String,
 }
 
 pub trait Manager {
-    fn fetch(key: &str) -> Option<MemoryLayout>;
-    fn alloc(key: String, value: String, datatype: Token);
+    fn fetch(key: &str) -> Option<Value>;
+    fn alloc(key: String, mem: Value);
 }
 
-// better assume: String(&'static str)
-
-pub static MEMORY_MAP: Lazy<Mutex<HashMap<String, MemoryLayout, RandomState>>> =
+pub static MEMORY_REP: Lazy<Mutex<HashMap<String, MemoryLayout, RandomState>>> =
     Lazy::new(|| {
         Mutex::new(HashMap::default())
     });
 
+// don't ask me what this is...
 impl Manager for MemoryLayout {
-    fn fetch(key: &str) -> Option<Self> {
-        let memory_map = &MEMORY_MAP;
+    fn fetch(key: &str) -> Option<Value> {
+        let memory_map = &MEMORY_REP;
 
         if memory_map.lock().contains_key(key) {
-            Some(*memory_map.lock().get(key).unwrap())
+            let ret = &*memory_map.lock();
+            let layout = ret.get(key).unwrap();
+            Some(
+                Value::String(
+                    layout.clone().value
+                )
+            )
         } else {
+            // value not found in memory
             None
         }
     }
 
-    fn alloc(key: String, value: String, datatype: Token) {
-        let state = Self {
-            value: s32::new(&value).unwrap(),
-            datatype,
+    fn alloc(key: String, mem: Value) {
+        let mem = match mem {
+            Value::String(mem) => mem,
+            Value::FInt(mem) => mem.to_string(),
+            Value::Int(mem) => mem.to_string(),
+            Value::Nothing => unimplemented!(),
         };
-        
-        MEMORY_MAP.lock().insert(key, state);
+
+        let rep = Self {
+            value: mem,
+        };
+
+        MEMORY_REP.lock().insert(key, rep);
     }
 }

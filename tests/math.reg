@@ -1,10 +1,15 @@
 main:
-    let x = 34710
-    let y = 34710
+    let troll = 34710
+    let lollol = 34710
+    let yz = 34710
+    let z = 50 + 50 - 25 * 0 + 2 + 2
+    
 
     /*
-        +-----------+
-        | print x+y |
-        +-----------+
+        +--------------------+
+        | print troll        |
+        | print lollol       |
+        | print troll+lollol |
+        +--------------------+
     */
 :end

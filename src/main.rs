@@ -20,7 +20,8 @@ fn main() {
         // start control flow
         junction::execute(script_path)
     } else {
+        push_help();
         push_error("Script path not provided.".to_string());
-        process::exit(1)
+        process::exit(0)
     }
 }

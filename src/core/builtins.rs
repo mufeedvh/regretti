@@ -3,6 +3,7 @@ use super::{
     tokens::Token,
     messages::*,
 };
+use std::panic;
 use std::process;
 
 pub struct Function {
@@ -16,6 +17,7 @@ pub trait Builtin {
     fn math_evaluator(expression: &str) -> f64;
 }
 
+use unescape::unescape;
 use fasteval::{ez_eval, EmptyNamespace};
 
 impl Builtin for Function {
@@ -46,12 +48,33 @@ impl Builtin for Function {
                 chars = self.value.trim().chars();
                 chars.next();
                 chars.next_back();
-                fmt_out = chars.as_str();
+                fmt_out = chars.as_str()
             }
         }
 
+        // escape sequence handling shouldn't panic
+        let escaping = panic::catch_unwind(|| {
+            unescape(fmt_out).unwrap()
+        });
+
+        let out = if escaping.is_ok() {
+            unescape(fmt_out).unwrap()
+        } else {
+            push_error(
+                format!(
+                    "Panicked because of unsupported escape sequence on string: \"{}\"",
+                    fmt_out
+                )
+            );
+            process::exit(1)
+        };
+
         // write formatted string to `stdout`
-        let writeln = writeln!(stdout, "{}", fmt_out);
+        let writeln = writeln!(
+            stdout,
+            "{}",
+            out
+        );
     
         match writeln {
             Ok(()) => (),

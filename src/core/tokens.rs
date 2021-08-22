@@ -81,10 +81,10 @@ pub enum Token {
         +-----------+
     */
     #[token("+")]
-    Plus,
+    Add,
 
     #[token("-")]
-    Minus,
+    Sub,
 
     #[token("*")]
     Multiply,
@@ -134,10 +134,7 @@ use regex::Regex;
 // parser grammar
 pub static STATEMENT: Lazy<Regex> = Lazy::new(|| Regex::new(r"\|(.*)\|").unwrap());
 pub static STRING: Lazy<Regex> = Lazy::new(|| Regex::new("\"(.*)\"").unwrap());
-
-// debug grammar:
-// pub static MATH: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d+(\s*[+\-*/]\s*\d+)+$").unwrap());
-// pub static KEYWORD: Lazy<Regex> = Lazy::new(|| Regex::new("[a-zA-Z_]+").unwrap());
+pub static MATH: Lazy<Regex> = Lazy::new(|| Regex::new(r"[+\-*/]").unwrap());
 
 /// Returns the token type from grammar matches
 pub fn token_grammar(slice: &str) -> Token {
@@ -146,6 +143,16 @@ pub fn token_grammar(slice: &str) -> Token {
     } else if STRING.is_match(slice) {
         Token::String
     } else {
-        Token::Skipped
+        // expression capture
+        if MATH.captures(slice).is_some() {
+            let capture = MATH.captures(slice).unwrap();
+            if capture.len() > 0 {
+                Token::Math
+            } else {
+                Token::Skipped
+            }
+        } else {
+            Token::Skipped
+        }
     }
 }

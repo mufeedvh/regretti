@@ -33,6 +33,7 @@ impl Analyser for Lexer {
                 None
             },
             Token::String => Some(Token::String),
+            Token::Math => Some(Token::Math),
             _ => None
         }
     }
@@ -46,14 +47,18 @@ impl Analyser for Lexer {
             let (token, _span, slice) = (lex.next(), lex.span(), lex.slice());
 
             if token.is_some() {
+                let curr_token = token.unwrap();
                 match token {
                     Some(Token::PassLex) => {
                         let token = self.analyse(slice);
                         if token.is_some() {
-                            tokens.push(token.unwrap())   
+                            tokens.push(token.unwrap())
                         }
                     },
-                    _ => tokens.push(token.unwrap())
+                    // Some(Token::Add) => {
+                    //     println!("bro: {}", slice)
+                    // }
+                    _ => tokens.push(curr_token)
                 }
             } else {
                 break

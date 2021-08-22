@@ -1,8 +1,27 @@
 use std::io::{BufWriter, Write};
 use std::io::Result;
+use std::process;
 
 use colored::*;
 
+/// single message stdout handler
+pub fn put_stdout(message: String) {
+    let stdout = std::io::stdout();
+    let mut stdout = BufWriter::new(stdout.lock());
+    
+    let writeln = writeln!(
+        stdout,
+        "{}",
+        message,
+    );
+
+    match writeln {
+        Ok(()) => (),
+        Err(error) => panic!("Couldn't write to `stdout`: {:?}", error),
+    };    
+}
+
+/// iteration based flushed stdout handler
 pub fn put_message(messages: Vec<String>) -> Result<()> {
     let stdout = std::io::stdout();
     let mut stdout = BufWriter::new(stdout.lock());
@@ -21,34 +40,34 @@ pub fn put_message(messages: Vec<String>) -> Result<()> {
     Ok(())
 }
 
+/// push error message
 pub fn push_error(message: String) {
-    let stdout = std::io::stdout();
-    let mut stdout = BufWriter::new(stdout.lock());
-    
-    let writeln = writeln!(
-        stdout,
-        "{} {}",
-        "[!] ERROR:".red().bold(), message.red()
-    );
-
-    match writeln {
-        Ok(()) => (),
-        Err(error) => panic!("Couldn't write to `stdout`: {:?}", error),
-    };
+    put_stdout(
+        format!(
+            "{} {}",
+            "[!] ERROR:".red().bold(), message.red()
+        )
+    )
 }
 
+/// push warning message
 pub fn push_warning(message: String) {
-    let stdout = std::io::stdout();
-    let mut stdout = BufWriter::new(stdout.lock());
+    put_stdout(
+        format!(
+            "{} {}",
+            "[!] WARNING:".yellow().bold(), message.yellow()
+        )
+    )
+}
 
-    let writeln = writeln!(
-        stdout,
-        "{} {}",
-        "[!] WARNING:".yellow().bold(), message.yellow()
-    );    
-
-    match writeln {
-        Ok(()) => (),
-        Err(error) => panic!("Couldn't write to `stdout`: {:?}", error),
-    };
+/// push help banner
+pub fn push_help() {
+    // banner message is embedded into the binary at compile-time
+    const HELP: &str = include_str!("../extras/banner");
+    put_stdout(
+        format!(
+            "{}",
+            HELP.green()
+        )
+    )
 }
