@@ -1,4 +1,7 @@
 main:
+
+    # RAN OUT OF TIME TO IMPLEMENT MULTITHREADING :(
+
     let message = "Sending 5 concurrent requests to http://127.0.0.1:6942/ with curl"
     /*
         -----------------

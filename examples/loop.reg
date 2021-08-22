@@ -1,5 +1,7 @@
 main:
-    let count = 0
+    let count = 69420
+
+    # https://xkcd.com/1195/
 
     /*
         +--------+
@@ -7,7 +9,6 @@ main:
         +--------+           |
              |               v
              |               +-----------------------+
-             |               | let count = count + 1 |
              |               | print count           |
              |               +-----------------------+
              |               ^
