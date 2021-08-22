@@ -16,6 +16,9 @@ pub enum Token {
     #[token("let")]
     Variable,
 
+    #[token("if")]
+    IfCondition,
+
     ///
     /// ```
     /// main:
@@ -47,6 +50,7 @@ pub enum Token {
     Statement,
 
     #[token("\n")]
+    #[token("--")]
     Newline,
 
     #[regex(r"[a-zA-Z_]+\((.*)\)\?")]

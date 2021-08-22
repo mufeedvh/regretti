@@ -2,14 +2,14 @@ main:
     let troll = 34710
     let lollol = 34710
     let yz = 34710
-    let z = 50 + 50 - 25 * 0 + 2 + 2
-    
+    let bruh = 50 + 50 - 25 * 0 + 2 + 2
 
     /*
         +--------------------+
         | print troll        |
         | print lollol       |
         | print troll+lollol |
+        | print bruh         |
         +--------------------+
     */
 :end

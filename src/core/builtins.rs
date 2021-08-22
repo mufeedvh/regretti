@@ -12,8 +12,9 @@ pub struct Function {
 }
 
 pub trait Builtin {
-    fn execute(&self);
+    fn execute(&self) -> Option<String>;
     fn print(&self);
+    fn input(&self) -> String;
     fn math_evaluator(expression: &str) -> f64;
 }
 
@@ -21,10 +22,25 @@ use unescape::unescape;
 use fasteval::{ez_eval, EmptyNamespace};
 
 impl Builtin for Function {
-    fn execute(&self) {
-        match self.keyword.as_str() {
-            "print" => self.print(),
-            _ => (),
+    // execute handles all function calls and optionally returns a value if there is
+    fn execute(&self) -> Option<String> {
+        let keyword = self.keyword.as_str();
+        match keyword {
+            // default functions
+            "print" => {
+                self.print();
+                None
+            },
+            // special functions
+            "input()" => {
+                Some(self.input())
+            },
+            _ => {
+                push_error(
+                    format!("Function named `{}` does not exist.", self.keyword)
+                );
+                process::exit(1);
+            },
         }
     }
 
@@ -80,6 +96,26 @@ impl Builtin for Function {
             Ok(()) => (),
             Err(error) => panic!("Couldn't write to `stdout`: {:?}", error),
         };
+    }
+
+    fn input(&self) -> String {
+        // input constructor
+        let mut line = String::new();
+        
+        let message = &self.value;
+
+        // print the user supplied input message as is
+        let print_message = Function {
+            keyword: "print".to_string(),
+            value: message.to_string(),
+        };
+        Function::execute(&print_message);
+
+        // this doesn't resolve but a panic here is less likely
+        std::io::stdin().read_line(&mut line).unwrap();
+
+        // return constructed string from `stdin`
+        line
     }
 
     fn math_evaluator(expression: &str) -> f64 {

@@ -17,6 +17,7 @@ use std::str;
 
 impl Parser {
     // parsing is performed in a deterministic syntax tree lookup
+    // everything is defined for assignment and execution seperately because of different behaviours
     pub fn parse(&self) {
         match self.token {
             Token::Variable => {
@@ -32,6 +33,9 @@ impl Parser {
                     assigned = true;
                 }
 
+                println!("{:?}", token_set);
+
+                // only if the value being assigned is a math expression
                 if token_set.contains(&Token::Math) {
                     let mut expression = String::new();
                     for token in token_set {
@@ -119,6 +123,42 @@ impl Parser {
                         match token {
                             Token::Variable => (),
                             Token::Assign => (),
+                            Token::LibFunction => {
+                                // lib function slice set should follow syntax spec of
+                                // being the 3rd element of an assignment
+                                let func_slice = &slice_set[3];
+
+                                // parse function name
+                                let keyword = STRING.replace_all(func_slice, "").to_string();
+        
+                                // get input message
+                                let value: String;
+                                let message_match = &STRING.captures(&self.slice).unwrap();
+
+                                // ensure matches exist otherwise fallback to default value
+                                if message_match.len() > 0 {
+                                    value = message_match[0].to_string()
+                                } else {
+                                    value = String::from("")
+                                }
+
+                                // define function struct
+                                let function = Function {
+                                    keyword: keyword.trim().to_string(),
+                                    value,
+                                };
+
+                                // execute library function
+                                let func_ret = Function::execute(&function);
+
+                                // if the library function emit output, allocate on assigned key
+                                if func_ret.is_some() {
+                                    MemoryLayout::alloc(
+                                        key.to_string(),
+                                        Value::String(func_ret.unwrap()),
+                                    )
+                                }
+                            },
                             Token::Keyword => key = &slice_set[pointer],
                             _ => {
                                 if assigned {
@@ -215,7 +255,7 @@ impl Parser {
                                 value: ret,
                             };
 
-                            Function::execute(&function)
+                            Function::execute(&function);
                         } else {
                             let mem_return = MemoryLayout::fetch(value);
 
@@ -229,10 +269,10 @@ impl Parser {
     
                                 let function = Function {
                                     keyword: keyword.trim().to_string(),
-                                    value
+                                    value,
                                 };
     
-                                Function::execute(&function)
+                                Function::execute(&function);
                             } else {
                                 push_error(
                                     format!("`{}` is not initialized.", value)
@@ -248,7 +288,7 @@ impl Parser {
                             keyword: keyword.trim().to_string(),
                             value,
                         };
-                        Function::execute(&function)
+                        Function::execute(&function);
                     },
                     Token::Number => {
                         let keyword = &slice_set[0];
@@ -261,7 +301,7 @@ impl Parser {
                             keyword: keyword.trim().to_string(),
                             value: ret,
                         };
-                        Function::execute(&function)
+                        Function::execute(&function);
                     }
                     _ => (),
                 }
