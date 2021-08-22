@@ -8,9 +8,7 @@
 
 ---
 
-The language comes with epic features like **Parallel Executors** (`threads`), **Algebraic Math Expression** support, and **Coloring**!
-
-_Made as part of the [Lang Jam (`jam0001`)](https://github.com/langjam/jam0001) theme: **first-class comments**._
+> Made for [Lang Jam (`jam0001`)](https://github.com/langjam/jam0001) theme: **first-class comments** in 48 hours.
 
 ## Summary
 
@@ -20,18 +18,30 @@ What if all those "`TODO:`" comments and beautiful ASCII art diagrams in your co
 
 So comments are **commands**!
 
+You can only run instruction statements inside a comment! 💬
+
 ## Table of Contents
 
-* [Features](#features)
+* [Features](#goals)
 * [Installation](#installation)
 * [Quick Start](#hello-world)
 * [Examples](#examples)
-* [Documentation](#documentation)
 * [Language Internals](#internals)
 
-## Features
+## Goals
+
+- **Teaching:** What initially started as a troll/esoteric language, it language could be used to teach kids "Control Flows" visually.
+- **High-performance:** The existing functionality/examples runs faster than most interpreted languages!
+- **Helpful Error Messages:** Almost every errors will be catched and prints out a helpful error message as to denote what went wrong. (Inspired from Rust :heart:)
 
 ## Installation
+
+```
+$ git clone https://github.com/mufeedvh/regretti.git
+$ cd regretti/
+$ cargo build --release
+$ ./target/release/regretti
+```
 
 ## Hello World
 
@@ -46,25 +56,54 @@ main:
     */
 ```
 
+**Loops**
+
+```
+
+main:
+    let count = 69420
+
+    /*
+        +--------+
+        | loop 5 |<----------+
+        +--------+           |
+             |               v
+             |               +-----------------------+
+             |               | print count           |
+             |               +-----------------------+
+             |               ^
+             |               |
+             +---------------+
+    */
+:end
+```
+
+Get more examples below!
+
 ## Examples
 
 Examples are the best way to learn regretti, these cover all the features and functionalities of the language:
 
--
--
+- [Hello World](https://github.com/mufeedvh/regretti/blob/main/examples/helloworld.reg)
+- [If Else](https://github.com/mufeedvh/regretti/blob/main/examples/if_else.reg)
+- [Loops](https://github.com/mufeedvh/regretti/blob/main/examples/loop.reg)
+
+_All other examples have not been completely implemented yet._
+
+_Also I am pretty sure there are a lot of bugs, this is probably the most obscure syntax for parsing lol..._
 
 ### Flow Charts?
 
-![Learn Flow Charts](https://imgs.xkcd.com/comics/flow_charts.png) (??)
+<div align="center">
+<img src="https://imgs.xkcd.com/comics/flow_charts.png" height="400" width="600">
+</div>
 
 ## Internals
 
 **In a nutshell:**
 
-![Internals](https://imgs.xkcd.com/comics/encoding.png)
+<img src="https://imgs.xkcd.com/comics/encoding.png" height="350" width="250">
 
 _https://xkcd.com/1209/_
 
-**So... (_clears throat_)**
-
-Detailed explanation here...
+**NOTE:** I couldn't implement the language completely (all available examples works correctly, run `tests` for more) because I ran out of time (I was kinda busy during the time). Thank You for checking out a 1700 line spaghetti. :heart::raised_hands:
