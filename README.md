@@ -10,11 +10,7 @@
 
 > Made for [Lang Jam (`jam0001`)](https://github.com/langjam/jam0001) theme: **first-class comments** in 48 hours.
 
----
-
 **UPDATE:** Voting has been started for the entries. Vote (:+1:) for our entry [**here**](https://github.com/langjam/jam0001/issues/295).
-
----
 
 ## Summary
 
@@ -114,4 +110,4 @@ _Also I am pretty sure there are a lot of bugs, this is probably the most obscur
 
 _https://xkcd.com/1209/_
 
-**NOTE:** I couldn't implement the language completely (all available examples works correctly, run `tests` for more) because I ran out of time (I was kinda busy during the time). Thank You for checking out a 1700 line spaghetti. :heart::raised_hands:
+---
