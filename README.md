@@ -30,8 +30,8 @@ You can only run instruction statements inside a comment! 💬
 
 ## Goals
 
-- **Teaching:** What initially started as a troll/esoteric language, it language could be used to teach kids "Control Flows" visually.
-- **High-performance:** The existing functionality/examples runs faster than most interpreted languages!
+- **Teaching:** What initially started as a troll/esoteric language, this language could be used to teach kids "Control Flows" visually.
+- **Fast:** The existing functionality/examples runs faster than most interpreted languages!
 - **Helpful Error Messages:** Almost every errors will be catched and prints out a helpful error message as to denote what went wrong. (Inspired from Rust :heart:)
 
 ## Installation
@@ -70,9 +70,9 @@ main:
         | loop 5 |<----------+
         +--------+           |
              |               v
-             |               +-----------------------+
-             |               | print count           |
-             |               +-----------------------+
+             |               +-------------+
+             |               | print count |
+             |               +-------------+
              |               ^
              |               |
              +---------------+
