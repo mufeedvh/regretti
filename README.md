@@ -10,6 +10,8 @@
 
 > Made for [Lang Jam (`jam0001`)](https://github.com/langjam/jam0001) theme: **first-class comments** in 48 hours.
 
+> **UPDATE:** regretti [won](https://www.youtube.com/watch?v=j7VAw8UfMeA&t=466s) Lang Jam (`jam0001`)!
+
 ## Summary
 
 What if all those "`TODO:`" comments and beautiful ASCII art diagrams in your code actually worked? Presenting you the one and only _regretti_, write your _spaghetti_ and _forgetti_!
