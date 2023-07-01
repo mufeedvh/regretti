@@ -1,5 +1,5 @@
 <div align="center">
-    <h1><code>regretti</code> <img src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/google/298/pinched-fingers_1f90c.png" height="32" width="32" alt="github doesn't have this emoji :(">🍝</h1>
+    <h1><code>regretti</code> 🤌🍝</h1>
 </div>
 
 <p align="center">
